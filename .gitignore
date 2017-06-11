@@ -4,6 +4,12 @@ test_image/
 train_image/
 .idea/
 
+# tensorflow saver file
+*.index
+*.meta
+*.data*
+checkpoint
+
 
 ### Python template
 # Byte-compiled / optimized / DLL files
