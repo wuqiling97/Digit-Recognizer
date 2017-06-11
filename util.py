@@ -28,7 +28,7 @@ class DataSet:
         alldata = np.load(filename)
         self.datasize = len(alldata)
         if 'train' in filename:
-            self.labels = np.array([dense2onehot(label) for label in alldata[..., 0]])
+            self.labels = np.array([dense2onehot(label) for label in alldata[..., 0]], copy=False)
             self.images = alldata[..., 1:] / 256
         elif 'test' in filename:
             self.labels = None
@@ -42,7 +42,7 @@ class DataSet:
         for i in random.sample(range(self.datasize), size):
             labels.append(self.labels[i])
             images.append(self.images[i])
-        return np.array(images), np.array(labels)
+        return np.array(images, copy=False), np.array(labels, copy=False)
 
     def testbatches(self, size):
         idx = 0
