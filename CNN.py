@@ -1,11 +1,19 @@
 import os, sys
 import argparse
 import numpy as np
-from tensorflow.examples.tutorials.mnist import input_data
 import tensorflow as tf
+from util import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-FLAGS = None
+
+
+def write_result(res):
+    """res: list [label1, label2, ...]"""
+    fout = open('result.csv', 'w')
+    fout.write('ImageId,Label\n')
+    for i, label in enumerate(res):
+        fout.write('{},{}\n'.format(i+1, label))
+    fout.close()
 
 
 def main(_):
@@ -27,7 +35,8 @@ def main(_):
         )
 
     # Import data
-    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+    train = DataSet('data/train.npy')
+    test = DataSet('data/test.npy')
 
     x = tf.placeholder(tf.float32, [None, 784])
     y_ = tf.placeholder(tf.float32, [None, 10])
@@ -59,26 +68,34 @@ def main(_):
     cross_entropy = tf.reduce_mean(
         tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+
+    prediction = tf.argmax(y_conv, 1)
+    correct_prediction = tf.equal(prediction, tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     for i in range(20000):
-        batch = mnist.train.next_batch(50)
+        batch = train.next_batch(50)
         if i%100 == 0:
             train_accuracy = accuracy.eval(feed_dict={
                 x: batch[0], y_: batch[1], keep_prob: 1.0})
             print("step %d, training accuracy %g" % (i, train_accuracy))
         train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
-    print("test accuracy %g"%accuracy.eval(feed_dict={
-        x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0}))
+    # print("test accuracy %g"%accuracy.eval(feed_dict={
+    #     x: test.images, y_: test.labels, keep_prob: 1.0}))
+    print('begin testing at {}'.format(current_time()))
+    res = np.array([], dtype=np.int)
+    for batch in test.testbatches(1000):
+        array = prediction.eval(feed_dict={x: batch, keep_prob: 1.0})
+        # if len(res)==0:
+        #     print(type(array), array)
+        res = np.concatenate((res, array))
+    print('begin writing result at {}'.format(current_time()))
+    write_result(res)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='/tmp/tensorflow/mnist/input_data',
-                        help='Directory for storing input data')
-    FLAGS, unparsed = parser.parse_known_args()
-    tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+    print('start at {}'.format(current_time()))
+    tf.app.run(main=main, argv=[sys.argv[0]])

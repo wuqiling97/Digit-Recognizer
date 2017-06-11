@@ -44,6 +44,13 @@ class DataSet:
             images.append(self.images[i])
         return np.array(images), np.array(labels)
 
+    def testbatches(self, size):
+        idx = 0
+        while idx < self.datasize:
+            r = idx + min(size, self.datasize-idx)
+            yield self.images[idx:r]
+            idx = r
+
 
 if __name__ == '__main__':
     csv2npy('data/train.csv')
