@@ -35,8 +35,7 @@ def main(_):
         )
 
     # Import data
-    train = DataSet('data/train.npy')
-    test = DataSet('data/test.npy')
+    kaggle = DataCollection('data', 0)
 
     x = tf.placeholder(tf.float32, [None, 784])
     y_ = tf.placeholder(tf.float32, [None, 10])
@@ -75,8 +74,8 @@ def main(_):
 
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
-    for i in range(20000):
-        batch = train.next_batch(50)
+    for i in range(200):
+        batch = kaggle.train.next_batch(50)
         if i%100 == 0:
             train_accuracy = accuracy.eval(feed_dict={
                 x: batch[0], y_: batch[1], keep_prob: 1.0})
@@ -87,7 +86,7 @@ def main(_):
     #     x: test.images, y_: test.labels, keep_prob: 1.0}))
     print('begin testing at {}'.format(current_time()))
     res = np.array([], dtype=np.int)
-    for batch in test.testbatches(1000):
+    for batch in kaggle.test.testbatches(1000):
         array = prediction.eval(feed_dict={x: batch, keep_prob: 1.0})
         # if len(res)==0:
         #     print(type(array), array)
