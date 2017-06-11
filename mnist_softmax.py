@@ -35,15 +35,12 @@ FLAGS = None
 
 
 def main(_):
-    # Import data
-    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
-
     # Create the model
     def model(x):
         W = tf.Variable(tf.zeros([784, 10]))
         b = tf.Variable(tf.zeros([10]))
         y = tf.matmul(x, W) + b
-        saver = tf.train.Saver([W, b], max_to_keep=10)
+        saver = tf.train.Saver([W, b], max_to_keep=5)
         return y, saver
 
     # Define loss and optimizer
@@ -65,7 +62,10 @@ def main(_):
     train_step = tf.train.AdamOptimizer(1e-3).minimize(cross_entropy)
 
     sess = tf.InteractiveSession()
-    do_train = False
+    do_train = True
+
+    # Import data
+    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
 
     if do_train:
         tf.global_variables_initializer().run()
@@ -74,7 +74,7 @@ def main(_):
         for i in range(1000):
             batch_xs, batch_ys = mnist.train.next_batch(100)
             _, loss = sess.run([train_step, cross_entropy], feed_dict={x: batch_xs, y_: batch_ys})
-            if i%100 == 0:
+            if i%100 == 99:
                 path = saver.save(sess, 'save_softmax/arg', global_step=i)
                 losslst.append((loss, path))
                 print(i, 'loss =', loss)
@@ -85,6 +85,7 @@ def main(_):
         saver.restore(sess, losslst[arg][1])
     else:
         saver.restore(sess, 'save_softmax/arg-900')
+
     # Test trained model
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
