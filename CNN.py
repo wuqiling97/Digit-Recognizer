@@ -88,31 +88,45 @@ def main(_):
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     accuracy_lst = []
-    print('training begin at {}'.format(current_time()))
+    istrain = False
+    savepath = 'save_CNN'
 
-    for i in range(1, 1+30000):
-        batch = kg.train.next_batch(50)
-        train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
-        if i%100 == 0:
-            train_accuracy = accuracy.eval(feed_dict={
-                x: batch[0], y_: batch[1], keep_prob: 1.0})
-            print("step %d, training accuracy %g" % (i, train_accuracy))
-            if i%1000 == 0:
-                # save variables
-                path = saver.save(sess, 'save_CNN/arg', global_step=i)
+    if istrain:
+        print('training begin at {}'.format(current_time()))
+        for i in range(1, 1+30000):
+            batch = kg.train.next_batch(50)
+            train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+            if i%100 == 0:
+                train_accuracy = accuracy.eval(feed_dict={
+                    x: batch[0], y_: batch[1], keep_prob: 1.0})
+                print("step %d, training accuracy %g" % (i, train_accuracy))
+                if i%1000 == 0:
+                    # save variables
+                    path = saver.save(sess, savepath+'/arg', global_step=i)
+                    vali_accuracy = accuracy.eval(
+                        feed_dict={x: kg.validation.images, y_: kg.validation.labels, keep_prob: 1.0}
+                    )
+                    print('validation accuracy {}'.format(vali_accuracy))
+                    accuracy_lst.append((vali_accuracy, path))
+                    if decreasing([i[0] for i in accuracy_lst[-4:]], 4):
+                        break
+    else:
+        for fname in os.listdir('save_CNN/'):
+            if fname.endswith('.meta'):
+                path = savepath+'/'+fname.replace('.meta', '')
+                saver.restore(sess, path)
                 vali_accuracy = accuracy.eval(
                     feed_dict={x: kg.validation.images, y_: kg.validation.labels, keep_prob: 1.0}
                 )
-                print('validation accuracy {}'.format(vali_accuracy))
                 accuracy_lst.append((vali_accuracy, path))
-                if decreasing([i[0] for i in accuracy_lst[-4:]], 4):
-                    break
+        print(accuracy_lst)
 
     # determine the max-accuracy state
-    arr = np.array((i[0] for i in accuracy_lst))
+    arr = np.array([i[0] for i in accuracy_lst])
     index = np.argmax(arr)
     print(accuracy_lst[index])
     saver.restore(sess, accuracy_lst[index][1])
+    # saver.restore(sess, savepath+'/arg-19000')
 
     # testing
     print('begin testing at {}'.format(current_time()))
