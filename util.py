@@ -74,32 +74,16 @@ def data_augment(alldata):
         rawimg = data[1:]
         label = data[0:1]
         image = rawimg.reshape((28, 28))
-        cnt = 0
-        while True:
-            step = random.choice((-1, -2, 1, 2))
+
+        for j in range(2):
+            while True:
+                step = (random.randint(-1, 1), random.randint(-1, 1))
+                if step != (0, 0):
+                    break
             axis = random.randint(0, 1)
             newimg = np.roll(image, step, axis)
-            slice = None
-            if step > 0:
-                if axis == 0:
-                    slice = image[-step:, :]
-                else:
-                    slice = image[:, -step:]
-            else:
-                if axis == 0:
-                    slice = image[:-step, :]
-                else:
-                    slice = image[:, :-step]
-            # ensure slice == 0
-            if not np.any(slice):
-                break
-            cnt += 1
-            if cnt >= 10:
-                print('cannot find a suitable step, step={}, axis={}, num={}'.format(step, axis, i))
-                print(image, slice, sep='\n')
-                input()
+            ret.append(np.concatenate((label, newimg.reshape(-1))))
 
-        ret.append(np.concatenate((label, newimg.reshape(-1))))
     return ret
 
 
@@ -118,8 +102,16 @@ def csv2npy(filename, is_augment):
 # fin = open('data/train.csv')
 # next(fin)
 # alldata = [np.array([int(num) for num in line.strip().split(',')]) for line in fin]
-# print('alldata gen')
-# alldata = data_augment(alldata)
+# cnt = 0
+# for i, row in enumerate(alldata):
+#     image = row[1:].reshape((28, 28))
+#     image = np.roll(image, 1, (0, 1))
+#     # 检验上, 左侧4行列是否全为0
+#     if np.any(image[:2, :]) or np.any(image[:, :2]):
+#         cnt += 1
+#         print('image {} unsuit'.format(i))
+#
+# print('unsuit count', cnt)
 
 
 if __name__ == '__main__':
