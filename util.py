@@ -67,14 +67,61 @@ def write_result(res, fname):
     fout.close()
 
 
-def csv2npy(filename):
+def data_augment(alldata):
+    ret = []
+    for i, data in enumerate(alldata):
+        ret.append(data)
+        rawimg = data[1:]
+        label = data[0:1]
+        image = rawimg.reshape((28, 28))
+        cnt = 0
+        while True:
+            step = random.choice((-1, -2, 1, 2))
+            axis = random.randint(0, 1)
+            newimg = np.roll(image, step, axis)
+            slice = None
+            if step > 0:
+                if axis == 0:
+                    slice = image[-step:, :]
+                else:
+                    slice = image[:, -step:]
+            else:
+                if axis == 0:
+                    slice = image[:-step, :]
+                else:
+                    slice = image[:, :-step]
+            # ensure slice == 0
+            if not np.any(slice):
+                break
+            cnt += 1
+            if cnt >= 10:
+                print('cannot find a suitable step, step={}, axis={}, num={}'.format(step, axis, i))
+                print(image, slice, sep='\n')
+                input()
+
+        ret.append(np.concatenate((label, newimg.reshape(-1))))
+    return ret
+
+
+def csv2npy(filename, is_augment):
     fin = open(filename)
     next(fin)
-    alldata = np.array([[int(num) for num in line.strip().split(',')] for line in fin], dtype=np.float32)
-    np.save(filename.replace('.csv', '.npy'), alldata)
+    alldata = [np.array([int(num) for num in line.strip().split(',')]) for line in fin]
+    if is_augment:
+        alldata = data_augment(alldata)
+        random.shuffle(alldata)
+    array = np.array(alldata, copy=False)
+    np.save(filename.replace('.csv', '.npy'), array)
     print('{} saved'.format(filename))
 
 
+# fin = open('data/train.csv')
+# next(fin)
+# alldata = [np.array([int(num) for num in line.strip().split(',')]) for line in fin]
+# print('alldata gen')
+# alldata = data_augment(alldata)
+
+
 if __name__ == '__main__':
-    csv2npy('data/train.csv')
-    csv2npy('data/test.csv')
+    csv2npy('data/train.csv', True)
+    csv2npy('data/test.csv', False)
