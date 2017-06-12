@@ -79,12 +79,12 @@ def main(_):
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     accuracy_lst = []
-    istrain = False
+    istrain = True
     savepath = 'save_CNN'
 
     if istrain:
         print('training begin at {}'.format(current_time()))
-        for i in range(1, 1+30000):
+        for i in range(1, 1+60000):
             batch = kg.train.next_batch(50)
             train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
             if i%100 == 0:

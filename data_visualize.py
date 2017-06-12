@@ -2,13 +2,22 @@ from PIL import Image
 import numpy as np
 
 
+def load_csv(path):
+    fin = open(path+'.csv')
+    fin.readline()
+    return [[int(x) for x in line.strip().split(',')] for line in fin]
+
+
+def load_npy(path):
+    array = np.load(path+'.npy')
+    return array
+
+
 def visual_train():
-    train = open('train.csv')
-    train.readline()
-    img_data = [line.strip().split(',') for line in train]
+    img_data = load_npy('data/train')
     n = 1
     for img in img_data:
-        img2d = np.array([255-int(x) for x in img[1:]], dtype=np.uint8).reshape((28, 28))
+        img2d = np.array([255-x for x in img[1:]], dtype=np.uint8).reshape((28, 28))
         imgfile = Image.fromarray(img2d)
         imgfile.save('train_image/{}[{}].png'.format(n, img[0]))
         n += 1
@@ -17,12 +26,10 @@ def visual_train():
 
 
 def visual_test():
-    test = open('test.csv')
-    test.readline()
-    img_data = [line.strip().split(',') for line in test]
+    img_data = load_npy('data/test')
     n = 1
     for img in img_data:
-        img2d = np.array([255-int(x) for x in img], dtype=np.uint8).reshape((28, 28))
+        img2d = np.array([255-x for x in img], dtype=np.uint8).reshape((28, 28))
         imgfile = Image.fromarray(img2d)
         imgfile.save('test_image/{}.png'.format(n))
         n += 1
@@ -30,4 +37,5 @@ def visual_test():
             print(n)
 
 
-visual_test()
+if __name__ == '__main__':
+    visual_train()
