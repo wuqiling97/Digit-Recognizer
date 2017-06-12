@@ -7,15 +7,6 @@ from util import *
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def write_result(res):
-    """res: list [label1, label2, ...]"""
-    fout = open('result.csv', 'w')
-    fout.write('ImageId,Label\n')
-    for i, label in enumerate(res):
-        fout.write('{},{}\n'.format(i+1, label))
-    fout.close()
-
-
 def decreasing(lst, length):
     if len(lst) < length:
         return False
@@ -41,9 +32,9 @@ def main(_):
             strides=[1, 2, 2, 1], padding='SAME')
 
     def model(x, keep_prob):
+        x_image = tf.reshape(x, [-1, 28, 28, 1])
         W_conv1 = weight_variable([5, 5, 1, 32])
         b_conv1 = bias_variable([32])
-        x_image = tf.reshape(x, [-1, 28, 28, 1])
         # first conv
         h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)
         h_pool1 = max_pool_2x2(h_conv1)
@@ -137,7 +128,7 @@ def main(_):
         #     print(type(array), array)
         res = np.concatenate((res, array))
     print('begin writing result at {}'.format(current_time()))
-    write_result(res)
+    write_result(res, 'result.csv')
 
 
 if __name__ == '__main__':

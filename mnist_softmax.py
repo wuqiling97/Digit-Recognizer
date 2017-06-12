@@ -29,6 +29,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 import os
 import tensorflow as tf
 import numpy as np
+from util import *
 
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 FLAGS = None
@@ -65,7 +66,7 @@ def main(_):
     do_train = True
 
     # Import data
-    mnist = input_data.read_data_sets(FLAGS.data_dir, one_hot=True)
+    mnist = DataCollection('data', 0)
 
     if do_train:
         tf.global_variables_initializer().run()
@@ -79,18 +80,25 @@ def main(_):
                 losslst.append((loss, path))
                 print(i, 'loss =', loss)
 
-        arr = np.array([v[0] for v in losslst])
-        arg = np.argmin(arr)
-        print(losslst[arg])
-        saver.restore(sess, losslst[arg][1])
+        # arr = np.array([v[0] for v in losslst])
+        # arg = np.argmin(arr)
+        # print(losslst[arg])
+        # saver.restore(sess, losslst[arg][1])
     else:
         saver.restore(sess, 'save_softmax/arg-900')
 
     # Test trained model
-    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+    prediction = tf.argmax(y, 1)
+    correct_prediction = tf.equal(prediction, tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print(sess.run(accuracy, feed_dict={x: mnist.test.images,
-                                        y_: mnist.test.labels}))
+
+    print('begin testing at {}'.format(current_time()))
+    res = np.array([], dtype=np.int)
+    for batch in mnist.test.testbatches(1000):
+        array = prediction.eval(feed_dict={x: batch})
+        res = np.concatenate((res, array))
+    print('begin writing result at {}'.format(current_time()))
+    write_result(res, 'result_softmax.csv')
 
 
 if __name__ == '__main__':

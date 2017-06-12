@@ -8,14 +8,6 @@ def current_time():
     return time.strftime('%H:%M:%S')
 
 
-def csv2npy(filename):
-    fin = open(filename)
-    next(fin)
-    alldata = np.array([[int(num) for num in line.strip().split(',')] for line in fin], dtype=np.float32)
-    np.save(filename.replace('.csv', '.npy'), alldata)
-    print('{} saved'.format(filename))
-
-
 class DataSet:
     def __init__(self, data_arr, haslabel):
         def dense2onehot(num, num_classes=10):
@@ -42,7 +34,7 @@ class DataSet:
     def testbatches(self, size):
         idx = 0
         while idx < self.datasize:
-            r = idx + min(size, self.datasize-idx)
+            r = idx + min(size, self.datasize - idx)
             yield self.images[idx:r]
             idx = r
 
@@ -64,6 +56,23 @@ class DataCollection:
         else:
             self.train = DataSet(train, True)
             self.validation = None
+
+
+def write_result(res, fname):
+    """res: list [label1, label2, ...]"""
+    fout = open(fname, 'w')
+    fout.write('ImageId,Label\n')
+    for i, label in enumerate(res):
+        fout.write('{},{}\n'.format(i+1, label))
+    fout.close()
+
+
+def csv2npy(filename):
+    fin = open(filename)
+    next(fin)
+    alldata = np.array([[int(num) for num in line.strip().split(',')] for line in fin], dtype=np.float32)
+    np.save(filename.replace('.csv', '.npy'), alldata)
+    print('{} saved'.format(filename))
 
 
 if __name__ == '__main__':
