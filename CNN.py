@@ -61,7 +61,7 @@ def main(_):
 
 
     # Import data  kg == kaggle data
-    kg = DataCollection('data', 2000)
+    kg = DataCollection('data', 4000)
 
     keep_prob = tf.placeholder(tf.float32)
     x = tf.placeholder(tf.float32, [None, 784])
@@ -79,12 +79,13 @@ def main(_):
     sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
     accuracy_lst = []
-    istrain = True
+    istrain = False
     savepath = 'save_CNN'
 
     if istrain:
         print('training begin at {}'.format(current_time()))
-        for i in range(1, 1+60000):
+        saver.restore(sess, savepath+'/arg-34000')
+        for i in range(1+34000, 1+60000):
             batch = kg.train.next_batch(50)
             train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
             if i%100 == 0:
@@ -99,25 +100,30 @@ def main(_):
                     )
                     print('validation accuracy {}'.format(vali_accuracy))
                     accuracy_lst.append((vali_accuracy, path))
-                    if decreasing([i[0] for i in accuracy_lst[-4:]], 4):
+                    # if decreasing([i[0] for i in accuracy_lst[-4:]], 4):
+                    #     break
+                if i%10000 == 0 and i>2e4:
+                    tmp = input('continue training?(y/n)\n')
+                    if tmp == 'n':
                         break
     else:
-        for fname in os.listdir('save_CNN/'):
-            if fname.endswith('.meta'):
-                path = savepath+'/'+fname.replace('.meta', '')
-                saver.restore(sess, path)
-                vali_accuracy = accuracy.eval(
-                    feed_dict={x: kg.validation.images, y_: kg.validation.labels, keep_prob: 1.0}
-                )
-                accuracy_lst.append((vali_accuracy, path))
-        print(accuracy_lst)
+        pass
+        # for fname in os.listdir('save_CNN/'):
+        #     if fname.endswith('.meta'):
+        #         path = savepath+'/'+fname.replace('.meta', '')
+        #         saver.restore(sess, path)
+        #         vali_accuracy = accuracy.eval(
+        #             feed_dict={x: kg.validation.images, y_: kg.validation.labels, keep_prob: 1.0}
+        #         )
+        #         accuracy_lst.append((vali_accuracy, path))
+        # print(accuracy_lst)
 
     # determine the max-accuracy state
-    arr = np.array([i[0] for i in accuracy_lst])
-    index = np.argmax(arr)
-    print(accuracy_lst[index])
-    saver.restore(sess, accuracy_lst[index][1])
-    # saver.restore(sess, savepath+'/arg-19000')
+    # arr = np.array([i[0] for i in accuracy_lst])
+    # index = np.argmax(arr)
+    # print(accuracy_lst[index])
+    # saver.restore(sess, accuracy_lst[index][1])
+    saver.restore(sess, savepath+'/arg-29000')
 
     # testing
     print('begin testing at {}'.format(current_time()))

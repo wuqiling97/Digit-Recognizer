@@ -13,8 +13,8 @@ def load_npy(path):
     return array
 
 
-def visual_train():
-    img_data = load_npy('data/train')
+def visual_train(loadfunc):
+    img_data = loadfunc('data/train')
     n = 1
     for img in img_data:
         img2d = np.array([255-x for x in img[1:]], dtype=np.uint8).reshape((28, 28))
@@ -25,8 +25,8 @@ def visual_train():
             print(n)
 
 
-def visual_test():
-    img_data = load_npy('data/test')
+def visual_test(loadfunc):
+    img_data = loadfunc('data/test')
     n = 1
     for img in img_data:
         img2d = np.array([255-x for x in img], dtype=np.uint8).reshape((28, 28))
@@ -38,4 +38,4 @@ def visual_test():
 
 
 if __name__ == '__main__':
-    visual_train()
+    visual_train(load_csv)
