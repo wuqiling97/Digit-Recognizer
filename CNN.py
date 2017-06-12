@@ -123,7 +123,7 @@ def main(_):
     # index = np.argmax(arr)
     # print(accuracy_lst[index])
     # saver.restore(sess, accuracy_lst[index][1])
-    saver.restore(sess, savepath+'/arg-29000')
+    saver.restore(sess, savepath+'/arg-84000')
 
     # testing
     print('begin testing at {}'.format(current_time()))
